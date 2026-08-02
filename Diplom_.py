@@ -7,6 +7,24 @@ import tkinter as tk #
 from tkinter import ttk, messagebox as mb #Импорт модуля tkinter (окна, кнопки, надписи) messagebox для отображения всплывающих окон с сообщениями.
 import requests # для выполнения HTTP-запросов к API CoinGecko.
 
+# Обновляет отображаемое название криптовалюты при выборе в выпадающем списке.
+def update_crypto_label(event):
+    code = crypto_combobox.get()
+    name = cryptos[code]
+    crypto_label.config(text=name)
+
+
+# Обновляет отображаемое название целевой валюты (доллара) при выборе в выпадающем списке.
+def update_target_label(event):
+    code = target_combobox.get()
+    name = target_currencies[code]
+    target_label.config(text=name)
+
+#Главная функция - получает актуальный курс выбранной криптовалюты к доллару США
+# через API CoinGecko и показывает результат во всплывающем окне.
+def get_crypto_price():
+    crypto_code = crypto_combobox.get()
+    target_code = target_combobox.get()
 
 # Создаем окно
 window = tk.Tk()
