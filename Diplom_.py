@@ -26,13 +26,84 @@ def get_crypto_price():
     crypto_code = crypto_combobox.get()
     target_code = target_combobox.get()
 
+#Проверка, что обе валюты выбраны (не пустые строки)
+    if crypto_code  and target_code:
+        try:
+# Запрос к API CoinGecko для первой криптовалюты
+            url = f"https://api.coingecko.com/api/v3/simple/price"
+            params = {
+                "ids": crypto_code, #код криптовалюты
+                "vs_currencies": target_code.lower(),# код целевой валюты
+                "include_24hr_change": "true"# включает информацию об изменении за 24 часа
+            }
+
+            response = requests.get(url, params=params, timeout=10) # получает от API с параметрами и таймаутом в 10с
+            response.raise_for_status() # проверка статуса ответа
+            data = response.json() # преобразование ответа в формате JSON в словарь Python
+
+# Получаем данные для первой криптовалюты
+            if crypto_code in data :
+                price1 = data[crypto_code][target_code.lower()]
+                change1 = data[crypto_code].get(f"{target_code.lower()}_24h_change", 0)
+
+# Форматируем цену
+                if price1 >= 1000:
+                    price1_text = f"{price1:,.2f}"
+                elif price1 >= 1:
+                    price1_text = f"{price1:.2f}"
+                elif price1 >= 0.01:
+                    price1_text = f"{price1:.4f}"
+                else:
+                    price1_text = f"{price1:.6f}"
+
+
+                crypto_name = cryptos[crypto_code]
+                target_name = target_currencies[target_code]
+
+# Формируем сообщение
+                message = (f"Курс {crypto_name} к {target_name}: {price1_text} {target_code.upper()}\n"
+                           f"Изменение за 24ч: {change1:+.2f}%\n\n")
+
+                mb.showinfo("Курс криптовалют", message)
+            else:
+                mb.showerror("Ошибка", "Криптовалюта не найдена")
+
+        except requests.exceptions.RequestException as e:
+            mb.showerror("Ошибка сети", f"Не удалось подключиться к API: {e}")
+        except Exception as e:
+            mb.showerror("Ошибка", f"Произошла ошибка: {e}")
+    else:
+        mb.showwarning("Внимание", "Выберите криптовалюты и целевую валюту")
+
+
+# Словарь с криптовалютами
+cryptos = {
+    "bitcoin": "Bitcoin (BTC)",
+    "ethereum": "Ethereum (ETH)",
+    "binancecoin": "Binance Coin (BNB)",
+    "solana": "Solana (SOL)",
+    "cardano": "Cardano (ADA)",
+    "dogecoin": "Dogecoin (DOGE)",
+    "polkadot": "Polkadot (DOT)",
+    "polygon": "Polygon (MATIC)",
+    "litecoin": "Litecoin (LTC)",
+    "chainlink": "Chainlink (LINK)",
+    "ripple": "Ripple (XRP)",
+    "avalanche": "Avalanche (AVAX)"
+}
+
+# Словарь с целевыми валютами (только доллар в нашей задаче)
+target_currencies = {
+    "usd": "Доллар США"
+}
+
 # Создаем окно
 window = tk.Tk()
 window.title("Курс криптовалют к доллару")
 window.geometry("500x400")
 window.configure(bg="#f0f0f0")
 
-icon_filename = "logo.ico" # задает имя файла иконки, которая  в заголовке окна
+icon_filename = "logo.ico"
 
 # Автоматически находим путь к папке со скриптом
 script_dir = os.path.dirname(os.path.abspath(__file__))
